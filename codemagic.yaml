@@ -5,11 +5,13 @@ workflows:
     environment:
       node: 20.0.0
       java: 17
+      vars:
+        COREPACK_ENABLE_STRICT: "0"
     scripts:
-      - name: Setup pnpm
+      - name: Enable pnpm via Corepack
         script: |
-          corepack disable || true
-          npm install -g pnpm --force
+          corepack enable
+          corepack prepare pnpm@9.0.0 --activate
           pnpm --version
 
       - name: Install dependencies
