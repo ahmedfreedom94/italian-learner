@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "V7HUPfiiGOm1L_aULNPYR"
+uri = "file://italian-learner-android.tar.gz"
+type = "unspecified"
+title = "مشروع Android - تعلم الإيطالية"
