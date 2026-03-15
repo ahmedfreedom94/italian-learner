@@ -33,48 +33,36 @@ workflows:
 
       - name: Build Android APK
         script: |
-          SEARCH_ROOT="${CM_BUILD_DIR:-/Users/builder/clone}"
+          set -o pipefail
           cd artifacts/italiano/android
           chmod +x gradlew
           ./gradlew assembleDebug --info 2>&1 | tee /tmp/gradle_output.log
-          GRADLE_EXIT=$?
           echo ""
-          echo "=== Gradle exit code: $GRADLE_EXIT ==="
           echo "=== PWD: $(pwd) ==="
           echo "=== CM_BUILD_DIR: ${CM_BUILD_DIR:-not set} ==="
-          echo "=== SEARCH_ROOT: $SEARCH_ROOT ==="
           echo ""
           echo "=== Build outputs directory ==="
           find app/build/outputs -type f 2>/dev/null || echo "No app/build/outputs found"
           echo ""
-          echo "=== APK files in project ==="
-          find . -name "*.apk" -type f 2>/dev/null || echo "No APKs in project dir"
-          echo ""
           echo "=== APK files under /Users/builder ==="
           find /Users/builder -name "*.apk" -type f 2>/dev/null || echo "No APKs under /Users/builder"
-          echo ""
-          if [ $GRADLE_EXIT -ne 0 ]; then
-            echo "Gradle build failed!"
-            exit $GRADLE_EXIT
-          fi
 
       - name: Collect APK artifact
         script: |
-          SEARCH_ROOT="${CM_BUILD_DIR:-/Users/builder/clone}"
-          EXPECTED_PATH="$SEARCH_ROOT/artifacts/italiano/android/app/build/outputs/apk/debug/app-debug.apk"
+          EXPECTED_PATH="${CM_BUILD_DIR:-/Users/builder/clone}/artifacts/italiano/android/app/build/outputs/apk/debug/app-debug.apk"
           echo "Looking for APK at: $EXPECTED_PATH"
           if [ -f "$EXPECTED_PATH" ]; then
             APK_SRC="$EXPECTED_PATH"
           else
-            echo "Not at expected path. Searching under $SEARCH_ROOT..."
-            APK_SRC=$(find "$SEARCH_ROOT" -path "*/outputs/apk/debug/app-debug.apk" -type f 2>/dev/null | head -1)
+            echo "Not at expected path. Searching under /Users/builder..."
+            APK_SRC=$(find /Users/builder -path "*/outputs/apk/debug/app-debug.apk" -type f 2>/dev/null | head -1)
           fi
           if [ -z "$APK_SRC" ]; then
-            echo "Searching for any APK under $SEARCH_ROOT..."
-            APK_SRC=$(find "$SEARCH_ROOT" -name "*.apk" -type f 2>/dev/null | head -1)
+            echo "Broadening search for any APK under /Users/builder..."
+            APK_SRC=$(find /Users/builder -name "*.apk" -type f 2>/dev/null | head -1)
           fi
           if [ -z "$APK_SRC" ]; then
-            echo "ERROR: No APK found under $SEARCH_ROOT!"
+            echo "ERROR: No APK found under /Users/builder!"
             echo "Last 50 lines of Gradle log:"
             tail -50 /tmp/gradle_output.log
             exit 1
