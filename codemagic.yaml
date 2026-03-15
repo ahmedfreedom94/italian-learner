@@ -21,6 +21,11 @@ workflows:
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > artifacts/italiano/android/local.properties
 
+      - name: Create webDir for Capacitor
+        script: |
+          mkdir -p artifacts/italiano/dist/public
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Loading...</title></head><body></body></html>' > artifacts/italiano/dist/public/index.html
+
       - name: Sync Capacitor
         script: |
           cd artifacts/italiano
