@@ -14,15 +14,22 @@ workflows:
         script: |
           cd artifacts/italiano/android
           chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace 2>&1 | tail -60
+          ./gradlew assembleDebug assembleRelease || ./gradlew assembleDebug
+
+      - name: List generated APKs
+        script: |
+          echo "=== All APK files ==="
+          find artifacts/italiano/android -name "*.apk" -type f
+          echo "=== Done ==="
 
     artifacts:
-      - artifacts/italiano/android/app/build/outputs/apk/**/*.apk
+      - artifacts/italiano/android/app/build/outputs/**/*.apk
+      - artifacts/italiano/android/app/build/**/*.apk
 
     publishing:
       email:
         recipients:
-          - your-email@gmail.com
+          - ahmedfreedom2019@gmail.com
         notify:
           success: true
           failure: true
