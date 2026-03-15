@@ -46,24 +46,42 @@ workflows:
 
       - name: Build Android APK
         script: |
+          ROOT_DIR=$(pwd)
           cd artifacts/italiano/android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew :app:assembleDebug
           echo ""
-          echo "=== APK files produced ==="
-          find . -name "*.apk" -type f
+          echo "=== All build output files ==="
+          find . -path "*/build/outputs/*" -type f 2>/dev/null || true
           echo ""
-          APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
-          if [ -f "$APK_PATH" ]; then
-            echo "APK found at $APK_PATH"
-            mkdir -p "$OLDPWD/apk_output"
-            cp "$APK_PATH" "$OLDPWD/apk_output/app-debug.apk"
-            ls -la "$OLDPWD/apk_output/app-debug.apk"
+          echo "=== All APK files in android dir ==="
+          find . -name "*.apk" -type f 2>/dev/null || true
+          echo ""
+          echo "=== All APK files under /Users/builder ==="
+          find /Users/builder -name "*.apk" -type f 2>/dev/null || true
+          echo ""
+          APK_SRC=""
+          if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+            APK_SRC="app/build/outputs/apk/debug/app-debug.apk"
           else
-            echo "ERROR: APK not found at expected path!"
-            find /Users/builder -name "*.apk" -type f 2>/dev/null
+            APK_SRC=$(find . -path "*/build/outputs/*" -name "*.apk" -type f 2>/dev/null | head -1)
+          fi
+          if [ -z "$APK_SRC" ]; then
+            APK_SRC=$(find /Users/builder -name "*.apk" -type f 2>/dev/null | head -1)
+          fi
+          if [ -z "$APK_SRC" ]; then
+            echo "ERROR: No APK found anywhere after BUILD SUCCESSFUL!"
+            echo "=== Listing all files in app/build/outputs ==="
+            find app/build/outputs -type f 2>/dev/null || echo "app/build/outputs does not exist"
+            echo "=== Listing all files in app/build ==="
+            ls -laR app/build/ 2>/dev/null | head -100 || echo "app/build does not exist"
             exit 1
           fi
+          echo "Found APK at: $APK_SRC"
+          mkdir -p "$ROOT_DIR/apk_output"
+          cp "$APK_SRC" "$ROOT_DIR/apk_output/app-debug.apk"
+          echo "APK copied successfully:"
+          ls -la "$ROOT_DIR/apk_output/app-debug.apk"
 
     artifacts:
       - apk_output/app-debug.apk
