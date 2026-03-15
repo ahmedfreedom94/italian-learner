@@ -42,17 +42,10 @@ workflows:
             cdvPluginPostBuildExtras = []
           }
           EOF
-          echo "=== Verifying all files ==="
-          echo "--- settings.gradle ---"
-          cat artifacts/italiano/android/settings.gradle
-          echo "--- capacitor.settings.gradle ---"
-          cat artifacts/italiano/android/capacitor.settings.gradle
-          echo "--- capacitor.build.gradle ---"
-          cat artifacts/italiano/android/app/capacitor.build.gradle
-          echo "--- cordova.variables.gradle ---"
-          cat artifacts/italiano/android/capacitor-cordova-android-plugins/cordova.variables.gradle
           echo "--- app/build.gradle ---"
           cat artifacts/italiano/android/app/build.gradle
+          echo "--- capacitor.build.gradle ---"
+          cat artifacts/italiano/android/app/capacitor.build.gradle
 
       - name: Ensure Android SDK 35
         script: |
@@ -61,7 +54,6 @@ workflows:
 
       - name: Build Android APK
         script: |
-          ROOT_DIR=$(pwd)
           cd artifacts/italiano/android
           chmod +x gradlew
           sed -i '' 's/gradle-8.14.3-all.zip/gradle-8.11.1-bin.zip/' gradle/wrapper/gradle-wrapper.properties
@@ -79,15 +71,11 @@ workflows:
             grep -n "error:\|Error:\|FAILED\|Exception\|Execution failed\|What went wrong" /tmp/gradle.log | head -30
             exit $GRADLE_EXIT
           fi
-          APK_SRC="app/build/outputs/apk/debug/app-debug.apk"
-          [ ! -f "$APK_SRC" ] && APK_SRC=$(find . -name "*.apk" -type f 2>/dev/null | head -1)
-          [ -z "$APK_SRC" ] && echo "ERROR: No APK!" && exit 1
-          mkdir -p "$ROOT_DIR/apk_output"
-          cp "$APK_SRC" "$ROOT_DIR/apk_output/app-debug.apk"
-          ls -la "$ROOT_DIR/apk_output/app-debug.apk"
+          echo "=== Build complete. APK ==="
+          find app/build/outputs/apk -name "*.apk" 2>/dev/null | head -5
 
     artifacts:
-      - apk_output/app-debug.apk
+      - artifacts/italiano/android/app/build/outputs/apk/**/*.apk
 
     publishing:
       email:
