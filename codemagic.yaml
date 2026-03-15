@@ -31,6 +31,13 @@ workflows:
           cd artifacts/italiano
           npx cap sync android
 
+      - name: Fix AdMob missing libs directory
+        script: |
+          find node_modules -path "*/capacitor-community/admob/android" -type d 2>/dev/null | while read dir; do
+            echo "Creating libs dir in: $dir"
+            mkdir -p "$dir/libs"
+          done
+
       - name: Build Android APK
         script: |
           set -o pipefail
