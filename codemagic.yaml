@@ -5,11 +5,16 @@ workflows:
     environment:
       java: 17
     scripts:
+      - name: Setup Android SDK path
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > artifacts/italiano/android/local.properties
+          cat artifacts/italiano/android/local.properties
+
       - name: Build Android APK
         script: |
           cd artifacts/italiano/android
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --stacktrace 2>&1 | tail -60
 
     artifacts:
       - artifacts/italiano/android/app/build/outputs/apk/**/*.apk
