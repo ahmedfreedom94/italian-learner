@@ -31,18 +31,16 @@ workflows:
           cd artifacts/italiano
           npx cap sync android
 
-      - name: Fix AdMob missing libs directory
+      - name: Remove AdMob from Gradle
         script: |
-          echo "Searching for admob android dirs..."
-          find /Users/builder -path "*admob*/android" -type d 2>/dev/null | while read dir; do
-            echo "Creating libs dir in: $dir"
-            mkdir -p "$dir/libs"
-          done
-          find . -path "*admob*/android" -type d 2>/dev/null | while read dir; do
-            echo "Creating libs dir in: $dir"
-            mkdir -p "$dir/libs"
-          done
-          echo "Done."
+          echo "Removing AdMob from Gradle build files..."
+          sed -i '' '/capacitor-community-admob/d' artifacts/italiano/android/capacitor.settings.gradle
+          sed -i '' '/capacitor-community-admob/d' artifacts/italiano/android/app/capacitor.build.gradle
+          echo "capacitor.settings.gradle:"
+          cat artifacts/italiano/android/capacitor.settings.gradle
+          echo ""
+          echo "capacitor.build.gradle:"
+          cat artifacts/italiano/android/app/capacitor.build.gradle
 
       - name: Build Android APK
         script: |
