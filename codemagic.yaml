@@ -46,12 +46,19 @@ workflows:
 
       - name: Build Android APK
         script: |
-          set -e
           ROOT_DIR=$(pwd)
           cd artifacts/italiano/android
           chmod +x gradlew
-          echo "=== Starting Gradle build ==="
-          ./gradlew assembleDebug
+          echo "=== Gradle projects ==="
+          ./gradlew projects 2>&1 || true
+          echo ""
+          echo "=== Building :app:assembleDebug ==="
+          ./gradlew :app:assembleDebug --stacktrace
+          GRADLE_EXIT=$?
+          if [ $GRADLE_EXIT -ne 0 ]; then
+            echo "Gradle FAILED with exit code $GRADLE_EXIT"
+            exit $GRADLE_EXIT
+          fi
           echo ""
           echo "=== Gradle finished. Searching for APK ==="
           find . -name "*.apk" -type f 2>/dev/null || true
@@ -61,7 +68,7 @@ workflows:
           fi
           if [ -z "$APK_SRC" ] || [ ! -f "$APK_SRC" ]; then
             echo "ERROR: No APK produced!"
-            ls -laR app/build/ 2>/dev/null | head -50 || echo "app/build does not exist"
+            find app/build -type f 2>/dev/null | head -50
             exit 1
           fi
           echo "Found APK at: $APK_SRC"
