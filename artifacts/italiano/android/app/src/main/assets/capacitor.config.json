@@ -1,0 +1,22 @@
+{
+	"appId": "com.italianlearner.app",
+	"appName": "تعلم اللغة الإيطالية",
+	"webDir": "dist/public",
+	"plugins": {
+		"AdMob": {
+			"appId": "ca-app-pub-3322579866946140~1098436856"
+		}
+	},
+	"server": {
+		"url": "https://italian-learner.replit.app",
+		"cleartext": false
+	},
+	"android": {
+		"allowMixedContent": false,
+		"backgroundColor": "#e8f4fd"
+	},
+	"ios": {
+		"contentInset": "automatic",
+		"backgroundColor": "#e8f4fd"
+	}
+}
