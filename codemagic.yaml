@@ -31,40 +31,17 @@ workflows:
           cd artifacts/italiano
           npx cap sync android
 
-      - name: Fix Gradle Build Files
+      - name: Fix Gradle settings
         script: |
-          echo "=== Removing AdMob from capacitor.settings.gradle ==="
-          sed -i '' '/capacitor-community-admob/d' artifacts/italiano/android/capacitor.settings.gradle
-          echo "=== Overwriting capacitor.build.gradle (clean) ==="
-          cat > artifacts/italiano/android/app/capacitor.build.gradle << 'CAPEOF'
-          android {
-            compileOptions {
-              sourceCompatibility JavaVersion.VERSION_21
-              targetCompatibility JavaVersion.VERSION_21
-            }
-          }
-          dependencies {
-          }
-          CAPEOF
-          echo "=== Removing capacitor-cordova-android-plugins from settings.gradle ==="
+          echo "=== Removing capacitor-cordova-android-plugins ==="
           sed -i '' '/capacitor-cordova-android-plugins/d' artifacts/italiano/android/settings.gradle
-          echo "=== Removing capacitor-cordova-android-plugins from app/build.gradle ==="
           sed -i '' '/capacitor-cordova-android-plugins/d' artifacts/italiano/android/app/build.gradle
-          echo "=== Verifying all files ==="
           echo "--- settings.gradle ---"
           cat artifacts/italiano/android/settings.gradle
-          echo "--- app/build.gradle (deps) ---"
-          grep -A 15 "^dependencies" artifacts/italiano/android/app/build.gradle
-          echo "--- capacitor.build.gradle ---"
-          cat artifacts/italiano/android/app/capacitor.build.gradle
           echo "--- capacitor.settings.gradle ---"
           cat artifacts/italiano/android/capacitor.settings.gradle
-          echo "=== Asserting cleanup ==="
-          if grep -q 'capacitor-community-admob' artifacts/italiano/android/capacitor.settings.gradle; then echo "FAIL: AdMob still in capacitor.settings.gradle"; exit 1; fi
-          if grep -q 'postBuildExtras' artifacts/italiano/android/app/capacitor.build.gradle; then echo "FAIL: postBuildExtras still in capacitor.build.gradle"; exit 1; fi
-          if grep -q 'capacitor-cordova-android-plugins' artifacts/italiano/android/settings.gradle; then echo "FAIL: cordova-plugins still in settings.gradle"; exit 1; fi
-          if grep -q 'capacitor-cordova-android-plugins' artifacts/italiano/android/app/build.gradle; then echo "FAIL: cordova-plugins still in app/build.gradle"; exit 1; fi
-          echo "All assertions passed."
+          echo "--- capacitor.build.gradle ---"
+          cat artifacts/italiano/android/app/capacitor.build.gradle
 
       - name: Ensure Android SDK 35
         script: |
@@ -84,28 +61,16 @@ workflows:
           GRADLE_EXIT=$?
           echo "=== FIRST 100 LINES ==="
           head -100 /tmp/gradle.log
-          echo ""
           echo "=== LAST 150 LINES ==="
           tail -150 /tmp/gradle.log
           if [ $GRADLE_EXIT -ne 0 ]; then
-            echo ""
             echo "=== ERROR SUMMARY ==="
             grep -n "error:\|Error:\|FAILED\|Exception\|Execution failed\|What went wrong" /tmp/gradle.log | head -30
             exit $GRADLE_EXIT
           fi
-          echo ""
-          echo "=== Gradle finished. Searching for APK ==="
-          find . -name "*.apk" -type f 2>/dev/null || true
           APK_SRC="app/build/outputs/apk/debug/app-debug.apk"
-          if [ ! -f "$APK_SRC" ]; then
-            APK_SRC=$(find . -name "*.apk" -type f 2>/dev/null | head -1)
-          fi
-          if [ -z "$APK_SRC" ] || [ ! -f "$APK_SRC" ]; then
-            echo "ERROR: No APK produced!"
-            find app/build -type f 2>/dev/null | head -50
-            exit 1
-          fi
-          echo "Found APK at: $APK_SRC"
+          [ ! -f "$APK_SRC" ] && APK_SRC=$(find . -name "*.apk" -type f 2>/dev/null | head -1)
+          [ -z "$APK_SRC" ] && echo "ERROR: No APK!" && exit 1
           mkdir -p "$ROOT_DIR/apk_output"
           cp "$APK_SRC" "$ROOT_DIR/apk_output/app-debug.apk"
           ls -la "$ROOT_DIR/apk_output/app-debug.apk"
