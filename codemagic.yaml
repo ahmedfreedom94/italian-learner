@@ -33,21 +33,32 @@ workflows:
 
       - name: Fix Gradle Build Files
         script: |
-          echo "=== Removing AdMob from Gradle ==="
+          echo "=== Removing AdMob from capacitor.settings.gradle ==="
           sed -i '' '/capacitor-community-admob/d' artifacts/italiano/android/capacitor.settings.gradle
-          sed -i '' '/capacitor-community-admob/d' artifacts/italiano/android/app/capacitor.build.gradle
-          echo "=== Removing capacitor-cordova-android-plugins entirely ==="
+          echo "=== Overwriting capacitor.build.gradle (clean) ==="
+          cat > artifacts/italiano/android/app/capacitor.build.gradle << 'CAPEOF'
+          android {
+            compileOptions {
+              sourceCompatibility JavaVersion.VERSION_21
+              targetCompatibility JavaVersion.VERSION_21
+            }
+          }
+          dependencies {
+          }
+          CAPEOF
+          echo "=== Removing capacitor-cordova-android-plugins from settings.gradle ==="
           sed -i '' '/capacitor-cordova-android-plugins/d' artifacts/italiano/android/settings.gradle
+          echo "=== Removing capacitor-cordova-android-plugins from app/build.gradle ==="
           sed -i '' '/capacitor-cordova-android-plugins/d' artifacts/italiano/android/app/build.gradle
-          sed -i '' '/cordova.variables.gradle/d' artifacts/italiano/android/app/capacitor.build.gradle
-          sed -i '' '/postBuildExtras/d' artifacts/italiano/android/app/capacitor.build.gradle
-          echo "=== Verifying files ==="
+          echo "=== Verifying all files ==="
           echo "--- settings.gradle ---"
           cat artifacts/italiano/android/settings.gradle
           echo "--- app/build.gradle (deps) ---"
           grep -A 15 "^dependencies" artifacts/italiano/android/app/build.gradle
           echo "--- capacitor.build.gradle ---"
           cat artifacts/italiano/android/app/capacitor.build.gradle
+          echo "--- capacitor.settings.gradle ---"
+          cat artifacts/italiano/android/capacitor.settings.gradle
 
       - name: Ensure Android SDK 35
         script: |
