@@ -1,32 +1,10 @@
 workflows:
   android-build:
     name: Build Android APK
-    max_build_duration: 60
+    max_build_duration: 30
     environment:
-      node: 20.19.0
       java: 17
-      vars:
-        COREPACK_ENABLE_STRICT: "0"
     scripts:
-      - name: Enable pnpm via Corepack
-        script: |
-          corepack enable
-          corepack prepare pnpm@9.15.0 --activate
-          pnpm --version
-
-      - name: Install dependencies
-        script: pnpm install --no-frozen-lockfile
-
-      - name: Build web app
-        script: |
-          cd artifacts/italiano
-          PORT=3000 BASE_PATH=/ NODE_ENV=production pnpm run build
-
-      - name: Sync Capacitor
-        script: |
-          cd artifacts/italiano
-          npx cap sync android
-
       - name: Build Android APK
         script: |
           cd artifacts/italiano/android
