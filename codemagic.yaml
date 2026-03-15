@@ -47,9 +47,11 @@ workflows:
           ROOT_DIR=$(pwd)
           cd artifacts/italiano/android
           chmod +x gradlew
+          sed -i '' 's/gradle-8.14.3-all.zip/gradle-8.11.1-bin.zip/' gradle/wrapper/gradle-wrapper.properties
+          cat gradle/wrapper/gradle-wrapper.properties
           sed -i '' 's/Xmx1536m/Xmx2048m/' gradle.properties
           echo "=== Building :app:assembleDebug (no-daemon) ==="
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          ./gradlew :app:assembleDebug --no-daemon
           GRADLE_EXIT=$?
           if [ $GRADLE_EXIT -ne 0 ]; then
             echo "Gradle FAILED with exit code $GRADLE_EXIT"
