@@ -6,16 +6,19 @@ workflows:
       node: 20.0.0
       java: 17
     scripts:
-      - name: Install pnpm
-        script: which pnpm || npm install -g pnpm --force
+      - name: Setup pnpm
+        script: |
+          corepack disable || true
+          npm install -g pnpm --force
+          pnpm --version
 
       - name: Install dependencies
-        script: pnpm install
+        script: pnpm install --no-frozen-lockfile
 
       - name: Build web app
         script: |
           cd artifacts/italiano
-          BASE_PATH="/" PORT=3000 NODE_ENV=production pnpm run build
+          NODE_ENV=production pnpm run build
 
       - name: Sync Capacitor
         script: |
