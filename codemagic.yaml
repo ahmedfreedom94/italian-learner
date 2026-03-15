@@ -33,53 +33,37 @@ workflows:
 
       - name: Fix AdMob missing libs directory
         script: |
-          find node_modules -path "*/capacitor-community/admob/android" -type d 2>/dev/null | while read dir; do
+          echo "Searching for admob android dirs..."
+          find /Users/builder -path "*admob*/android" -type d 2>/dev/null | while read dir; do
             echo "Creating libs dir in: $dir"
             mkdir -p "$dir/libs"
           done
+          find . -path "*admob*/android" -type d 2>/dev/null | while read dir; do
+            echo "Creating libs dir in: $dir"
+            mkdir -p "$dir/libs"
+          done
+          echo "Done."
 
       - name: Build Android APK
         script: |
-          set -o pipefail
           cd artifacts/italiano/android
           chmod +x gradlew
-          ./gradlew assembleDebug --info 2>&1 | tee /tmp/gradle_output.log
+          ./gradlew assembleDebug
           echo ""
-          echo "=== PWD: $(pwd) ==="
-          echo "=== CM_BUILD_DIR: ${CM_BUILD_DIR:-not set} ==="
+          echo "=== APK files produced ==="
+          find . -name "*.apk" -type f
           echo ""
-          echo "=== Build outputs directory ==="
-          find app/build/outputs -type f 2>/dev/null || echo "No app/build/outputs found"
-          echo ""
-          echo "=== APK files under /Users/builder ==="
-          find /Users/builder -name "*.apk" -type f 2>/dev/null || echo "No APKs under /Users/builder"
-
-      - name: Collect APK artifact
-        script: |
-          set -e
-          EXPECTED_PATH="${CM_BUILD_DIR:-/Users/builder/clone}/artifacts/italiano/android/app/build/outputs/apk/debug/app-debug.apk"
-          echo "Looking for APK at: $EXPECTED_PATH"
-          if [ -f "$EXPECTED_PATH" ]; then
-            APK_SRC="$EXPECTED_PATH"
+          APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
+          if [ -f "$APK_PATH" ]; then
+            echo "APK found at $APK_PATH"
+            mkdir -p "$OLDPWD/apk_output"
+            cp "$APK_PATH" "$OLDPWD/apk_output/app-debug.apk"
+            ls -la "$OLDPWD/apk_output/app-debug.apk"
           else
-            echo "Not at expected path. Searching under /Users/builder..."
-            APK_SRC=$(find /Users/builder -path "*/outputs/apk/debug/app-debug.apk" -type f 2>/dev/null | head -1)
-          fi
-          if [ -z "$APK_SRC" ]; then
-            echo "Broadening search for any app-debug.apk under /Users/builder..."
-            APK_SRC=$(find /Users/builder -name "app-debug.apk" -type f 2>/dev/null | head -1)
-          fi
-          if [ -z "$APK_SRC" ]; then
-            echo "ERROR: No APK found under /Users/builder!"
-            echo "Last 50 lines of Gradle log:"
-            tail -50 /tmp/gradle_output.log
+            echo "ERROR: APK not found at expected path!"
+            find /Users/builder -name "*.apk" -type f 2>/dev/null
             exit 1
           fi
-          echo "Found APK at: $APK_SRC"
-          mkdir -p apk_output
-          cp "$APK_SRC" apk_output/app-debug.apk
-          echo "APK copied to apk_output/app-debug.apk:"
-          ls -la apk_output/app-debug.apk
 
     artifacts:
       - apk_output/app-debug.apk
