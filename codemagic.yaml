@@ -36,16 +36,67 @@ workflows:
           echo "=== Removing AdMob from Gradle ==="
           sed -i '' '/capacitor-community-admob/d' artifacts/italiano/android/capacitor.settings.gradle
           sed -i '' '/capacitor-community-admob/d' artifacts/italiano/android/app/capacitor.build.gradle
-          echo "=== Fixing AGP version conflict in cordova plugins ==="
-          sed -i '' 's/com.android.tools.build:gradle:8.13.0/com.android.tools.build:gradle:8.7.2/' artifacts/italiano/android/capacitor-cordova-android-plugins/build.gradle
-          echo "capacitor.settings.gradle:"
+          echo "=== Rewriting capacitor-cordova-android-plugins/build.gradle ==="
+          cat > artifacts/italiano/android/capacitor-cordova-android-plugins/build.gradle << 'GRADLE_EOF'
+          ext {
+              androidxAppCompatVersion = '1.7.0'
+              cordovaAndroidVersion = '14.0.1'
+              cdvPluginPostBuildExtras = []
+              cordovaConfig = [:]
+          }
+
+          apply plugin: 'com.android.library'
+
+          android {
+              namespace = "capacitor.cordova.android.plugins"
+              compileSdk = 35
+              defaultConfig {
+                  minSdkVersion 24
+                  targetSdkVersion 35
+                  versionCode 1
+                  versionName "1.0"
+              }
+              lintOptions {
+                  abortOnError = false
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_21
+                  targetCompatibility JavaVersion.VERSION_21
+              }
+          }
+
+          repositories {
+              google()
+              mavenCentral()
+              flatDir {
+                  dirs 'src/main/libs', 'libs'
+              }
+          }
+
+          dependencies {
+              implementation fileTree(dir: 'src/main/libs', include: ['*.jar'])
+              implementation "androidx.appcompat:appcompat:1.7.0"
+              implementation "org.apache.cordova:framework:14.0.1"
+          }
+
+          for (def func : cdvPluginPostBuildExtras) {
+              func()
+          }
+          GRADLE_EOF
+          echo "=== Verifying all patched files ==="
+          echo "--- capacitor.settings.gradle ---"
           cat artifacts/italiano/android/capacitor.settings.gradle
           echo ""
-          echo "capacitor.build.gradle:"
+          echo "--- capacitor.build.gradle ---"
           cat artifacts/italiano/android/app/capacitor.build.gradle
           echo ""
-          echo "capacitor-cordova-android-plugins/build.gradle:"
+          echo "--- capacitor-cordova-android-plugins/build.gradle ---"
           cat artifacts/italiano/android/capacitor-cordova-android-plugins/build.gradle
+
+      - name: Ensure Android SDK 35
+        script: |
+          yes | sdkmanager --licenses 2>/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" 2>/dev/null || true
 
       - name: Build Android APK
         script: |
@@ -53,7 +104,6 @@ workflows:
           cd artifacts/italiano/android
           chmod +x gradlew
           sed -i '' 's/gradle-8.14.3-all.zip/gradle-8.11.1-bin.zip/' gradle/wrapper/gradle-wrapper.properties
-          cat gradle/wrapper/gradle-wrapper.properties
           sed -i '' 's/Xmx1536m/Xmx2048m/' gradle.properties
           echo "=== Building :app:assembleDebug (no-daemon) ==="
           ./gradlew :app:assembleDebug --no-daemon
