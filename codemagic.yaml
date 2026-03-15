@@ -20,7 +20,7 @@ workflows:
       - name: Build web app
         script: |
           cd artifacts/italiano
-          NODE_ENV=production pnpm run build
+          PORT=3000 BASE_PATH=/ NODE_ENV=production pnpm run build
 
       - name: Sync Capacitor
         script: |
