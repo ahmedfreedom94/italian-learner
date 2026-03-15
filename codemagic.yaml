@@ -59,6 +59,12 @@ workflows:
           cat artifacts/italiano/android/app/capacitor.build.gradle
           echo "--- capacitor.settings.gradle ---"
           cat artifacts/italiano/android/capacitor.settings.gradle
+          echo "=== Asserting cleanup ==="
+          if grep -q 'capacitor-community-admob' artifacts/italiano/android/capacitor.settings.gradle; then echo "FAIL: AdMob still in capacitor.settings.gradle"; exit 1; fi
+          if grep -q 'postBuildExtras' artifacts/italiano/android/app/capacitor.build.gradle; then echo "FAIL: postBuildExtras still in capacitor.build.gradle"; exit 1; fi
+          if grep -q 'capacitor-cordova-android-plugins' artifacts/italiano/android/settings.gradle; then echo "FAIL: cordova-plugins still in settings.gradle"; exit 1; fi
+          if grep -q 'capacitor-cordova-android-plugins' artifacts/italiano/android/app/build.gradle; then echo "FAIL: cordova-plugins still in app/build.gradle"; exit 1; fi
+          echo "All assertions passed."
 
       - name: Ensure Android SDK 35
         script: |
