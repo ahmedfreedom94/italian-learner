@@ -37,15 +37,18 @@ workflows:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: List generated APKs
+      - name: Collect APK artifacts
         script: |
           echo "=== All APK files ==="
           find artifacts/italiano/android -name "*.apk" -type f
+          echo "=== Copying to build root ==="
+          mkdir -p apk_output
+          find artifacts/italiano/android -name "*.apk" -type f -exec cp {} apk_output/ \;
+          ls -la apk_output/
           echo "=== Done ==="
 
     artifacts:
-      - artifacts/italiano/android/app/build/outputs/**/*.apk
-      - artifacts/italiano/android/app/build/**/*.apk
+      - apk_output/*.apk
 
     publishing:
       email:
