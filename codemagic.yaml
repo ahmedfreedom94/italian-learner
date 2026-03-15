@@ -33,9 +33,8 @@ workflows:
 
       - name: Fix Gradle settings
         script: |
-          echo "=== Removing capacitor-cordova-android-plugins as subproject ==="
+          echo "=== Removing capacitor-cordova-android-plugins from settings.gradle ==="
           sed -i '' '/capacitor-cordova-android-plugins/d' artifacts/italiano/android/settings.gradle
-          sed -i '' '/capacitor-cordova-android-plugins/d' artifacts/italiano/android/app/build.gradle
           echo "=== Creating cordova.variables.gradle (required by capacitor.build.gradle) ==="
           mkdir -p artifacts/italiano/android/capacitor-cordova-android-plugins
           cat > artifacts/italiano/android/capacitor-cordova-android-plugins/cordova.variables.gradle << 'EOF'
@@ -43,6 +42,7 @@ workflows:
             cdvPluginPostBuildExtras = []
           }
           EOF
+          echo "=== Verifying all files ==="
           echo "--- settings.gradle ---"
           cat artifacts/italiano/android/settings.gradle
           echo "--- capacitor.settings.gradle ---"
@@ -51,6 +51,8 @@ workflows:
           cat artifacts/italiano/android/app/capacitor.build.gradle
           echo "--- cordova.variables.gradle ---"
           cat artifacts/italiano/android/capacitor-cordova-android-plugins/cordova.variables.gradle
+          echo "--- app/build.gradle ---"
+          cat artifacts/italiano/android/app/build.gradle
 
       - name: Ensure Android SDK 35
         script: |
